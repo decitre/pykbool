@@ -1,5 +1,5 @@
 pykbool is a Python (2&3) extension. 
-Its installation requires cython and kbool.
+Its installation requires Cython and kbool.
 Cython can be downloaded from www.cython.org
 kbool can be found in www.wxart2d.org or http://boolean.klaasholwerda.nl/download/download.html
 
@@ -13,3 +13,6 @@ To install pykbool:
 Two small demos:
 python setup.py demo1
 python setup.py demo2
+
+To install for py3k:
+Install Cython for py3k and replace all "python setup.py" calls with "python3 setup.py"
