@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
-version='0.1'
+from __future__ import with_statement
 import sys
+version='0.1.1'
 
 def demo1():
     try:
@@ -72,9 +73,10 @@ def demo2():
         from pykbool import connect
         import json, gzip
         
-        with gzip.open('poly.json.gz', 'r') as f:
-          contour, holes = json.loads(f.readline().decode())
-
+        f = gzip.open('poly.json.gz', 'r') # In Py2.6: GzipFile instance has no attribute '__exit__'
+        contour, holes = json.loads(f.readline().decode())
+        f.close()
+        
         connected = connect([contour]+holes)
 
         root1 = Tk()
@@ -103,6 +105,17 @@ if sys.argv[-1] == 'demo1':
     demo1()
 elif sys.argv[-1] == 'demo2':
     demo2()
+elif sys.argv[-1] == 'dist':
+    import shutil, os, tarfile
+    releasedir = 'pykbool-%s'%(version)
+    shutil.rmtree(releasedir, True)
+    os.mkdir(releasedir)
+    for file_ in ('INSTALL', 'LICENSE', 'demo.gif', 'pykbool.pyx', 'patch.sh', 'poly.json.gz', 'setup.py'):
+        shutil.copy(file_, '%s/%s'%(releasedir, file_))
+    a = tarfile.open('%s.tgz'%(releasedir), 'w:gz') # In Py2.6: 'TarFile' object has no attribute '__exit__'
+    a.add(releasedir)
+    a.close()
+    
 else:
   
     from distutils.core import setup
