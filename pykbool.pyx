@@ -310,31 +310,72 @@ cdef class Bool_Engine:
         self.end_polygon_get()
       return poly
 
-    def connect(self, list keyhole_polygon):
-        """Link holes into contour.
-           keyhole_polygon is a list of polygons, whereas the first one is the contour.
-           Uses A - B operation."""
-        connected_polygon = []
+    def substract(self, list a, list b):
+        cdef double x, y, px, py
+        cdef bint first
+        # do a
+        first = True # for deduplication
+        if a[-1] != a[0]: a.append(a[0]) # close the polygonal chain
         self.thisptr.StartPolygonAdd(GROUP_A)
-        for x, y in keyhole_polygon[0]:
-            self.thisptr.AddPoint(x, y)    
-        self.thisptr.AddPoint(keyhole_polygon[0][0][0], keyhole_polygon[0][0][1])
-        self.thisptr.EndPolygonAdd()
-        self.thisptr.StartPolygonAdd(GROUP_B)
-        for hole in keyhole_polygon[1:]:
-            for x, y in hole:
+        for x, y in a:
+            if x != px or y != py or first:
                 self.thisptr.AddPoint(x, y)
-            self.thisptr.AddPoint(hole[0][0], hole[0][1])
+                px, py = x, y
+                first = False
         self.thisptr.EndPolygonAdd()
-        self.thisptr.Do_Operation(BOOL_A_SUB_B)
-        if self.thisptr.StartPolygonGet():
-          while self.thisptr.PolygonHasMorePoints():
-            connected_polygon.append((self.thisptr.GetPolygonXPoint(), self.thisptr.GetPolygonYPoint()))
-          self.thisptr.EndPolygonGet()
-        return connected_polygon
 
-# lambda to close a polygon... Suboptimal because of list duplication....
-close = lambda p: p if p[0] == p[-1] else p + [p[0]]
+        # do b
+        if b[-1] != b[0]: b.append(b[0]) 
+        self.thisptr.StartPolygonAdd(GROUP_B)
+        first = True
+        for x, y in b:
+            if x != px or y != py or first:
+                self.thisptr.AddPoint(x, y)
+                px, py = x, y
+                first = False
+        self.thisptr.EndPolygonAdd()
+
+        self.thisptr.Do_Operation(BOOL_A_SUB_B)
+
+        result = []
+
+        if self.thisptr.StartPolygonGet():
+            while self.thisptr.PolygonHasMorePoints():
+                result.append((self.thisptr.GetPolygonXPoint(), self.thisptr.GetPolygonYPoint()))
+            self.thisptr.EndPolygonGet()
+
+        return result        
+
+def Default_Engine():
+    engine = Bool_Engine()
+    engine.thisptr.SetMarge(0.00001)
+    engine.thisptr.SetGrid(10000)
+    engine.thisptr. SetDGrid(100000)
+    engine.thisptr.SetCorrectionAber(1.0)
+    engine.thisptr.SetCorrectionFactor(500.0)
+    engine.thisptr.SetSmoothAber(10.0)
+    engine.thisptr.SetMaxlinemerge(1000.0)
+    engine.thisptr.SetRoundfactor(1.5)
+    return engine
+
+def connect(list keyhole_polygon, default_engine=None):
+    """Helper to link holes into contour.
+        keyhole_polygon is a list of polygons, whereas the first one is the contour.
+        Uses A - B operation."""
+
+    contour, holes = keyhole_polygon[0], keyhole_polygon[1:]
+    if default_engine == None:
+        engine = Default_Engine()
+    else:
+        engine = default_engine
+    for hole in holes:
+        new_contour = engine.substract(contour, hole)
+        if new_contour == []: # see: http://sourceforge.net/mailarchive/message.php?msg_id=27089725
+          engine = Default_Engine()
+          new_contour = engine.substract(contour, hole)
+        contour = new_contour
+    return contour
+
 
 def _test():
     e=Bool_Engine()
