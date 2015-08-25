@@ -5,6 +5,8 @@ kbool was originally written by `Klaas Holwerda <http://boolean.klaasholwerda.nl
 
 One of kbool's feature is to provide connected keyhole polygons, which can be useful when rendering with engines not supporting polygons with holes like Tk.
 
+.. image:: https://raw.githubusercontent.com/decitre/pykbool/master/data/connected.png
+
 kbool can be checked out from wxart2d SVN repo or extracted from the r842 archive::
 
     $ svn co http://svn.code.sf.net/p/wxart2d/code/trunk/wxArt2D/thirdparty/kbool
