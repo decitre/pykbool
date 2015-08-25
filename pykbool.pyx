@@ -48,7 +48,7 @@ cdef extern from "kbool/booleng.h":
         KB_OUTSIDE_EDGE,
         KB_INSIDE_EDGE,
         KB_FALSE_EDGE
-    cdef cppclass CBool_Engine 'Bool_Engine':
+    cdef cppclass CBool_Engine 'kbBool_Engine':
         CBool_Engine()
         std_string GetVersion()
         bool Do_Operation(Operation) except +KboolError
