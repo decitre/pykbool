@@ -1,9 +1,12 @@
 pykbool is a `Cython <http://www.cython.org>`_ wrapper exposing the kbool library.
 
 kbool is a polygon clipper provided within the `wxArt2D <http://www.wxart2d.org/>`_ framework as a third party library.
+
 kbool was originally written by `Klaas Holwerda <http://boolean.klaasholwerda.nl/bool.html>`_.
 
 One of kbool's feature is to provide connected keyhole polygons, which can be useful when rendering with engines not supporting polygons with holes like Tk.
+
+.. image:: https://raw.githubusercontent.com/decitre/pykbool/master/data/not_connected.png
 
 .. image:: https://raw.githubusercontent.com/decitre/pykbool/master/data/connected.png
 
