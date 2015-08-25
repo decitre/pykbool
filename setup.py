@@ -1,7 +1,6 @@
 # -*- coding: utf-8 -*-
-from __future__ import with_statement
-import sys
-version='0.1.1'
+import sys, os.path, traceback
+version='0.1.2'
 
 def demo1():
     try:
@@ -49,7 +48,7 @@ def demo1():
         
         canvas2 = Canvas(root, width=900, height=415, background='white')
         canvas2.pack()
-        image=PhotoImage(file="demo.gif")
+        image=PhotoImage(file=os.path.join('data','demo.gif'))
         canvas2.create_image((0,0), image=image, anchor=NW)
         canvas2.image=image
         canvas2.create_polygon(connected_polygon, outline='black', fill='grey')
@@ -73,32 +72,34 @@ def demo2():
         from pykbool import connect
         import json, gzip
         
-        f = gzip.open('poly.json.gz', 'r') # In Py2.6: GzipFile instance has no attribute '__exit__'
-        contour, holes = json.loads(f.readline().decode())
-        f.close()
+        with gzip.open(os.path.join('data','poly.json.gz'), 'r') as f:
+            contour, holes = json.loads(f.readline().decode())
         
-        connected = connect([contour]+holes)
+        try:
+            connected = connect([contour]+holes)
 
-        root1 = Tk()
-        root1.title(string='not connected - contour (%d points) + holes (%d points)'%(len(contour), sum(map(len, holes))))
-        canvas1 = Canvas(root1, width=810, height=510, background='white')
-        canvas1.pack()
-        canvas1.create_polygon(contour, outline='blue', fill='')
-        for hole in holes:
-            canvas1.create_polygon(hole, outline='red', fill='')
+            root1 = Tk()
+            root1.title(string='not connected - contour (%d points) + holes (%d points)'%(len(contour), sum(map(len, holes))))
+            canvas1 = Canvas(root1, width=810, height=510, background='white')
+            canvas1.pack()
+            canvas1.create_polygon(contour, outline='blue', fill='')
+            for hole in holes:
+                canvas1.create_polygon(hole, outline='red', fill='')
 
-        root2 = Tk()
-        root2.title(string='connected - keyhole polygon (%d points)' %(len(connected)))
-        canvas2 = Canvas(root2, width=810, height=510, background='white',)
-        canvas2.pack()
+            root2 = Tk()
+            root2.title(string='connected - keyhole polygon (%d points)' %(len(connected)))
+            canvas2 = Canvas(root2, width=810, height=510, background='white',)
+            canvas2.pack()
 
-        canvas2.create_polygon(connected, outline='black', fill='#98BAD3', dash=(4,))
+            canvas2.create_polygon(connected, outline='black', fill='#98BAD3', dash=(4,))
 
-        canvas2.create_text(connected[0], text='P1', fill='red')
-        canvas2.create_text(connected[int(len(connected)*0.5)], text='Pi', fill='red')
-        canvas2.create_text(connected[int(len(connected)*2/3)], text='Pj', fill='red')
+            canvas2.create_text(connected[0], text='P1', fill='red')
+            canvas2.create_text(connected[int(len(connected)*0.5)], text='Pi', fill='red')
+            canvas2.create_text(connected[int(len(connected)*2/3)], text='Pj', fill='red')
 
-        root1.mainloop()
+            root1.mainloop()
+        except:
+            traceback.print_exc()
 
 
 if sys.argv[-1] == 'demo1':
@@ -110,11 +111,17 @@ elif sys.argv[-1] == 'dist':
     releasedir = 'pykbool-%s'%(version)
     shutil.rmtree(releasedir, True)
     os.mkdir(releasedir)
-    for file_ in ('INSTALL', 'LICENSE', 'demo.gif', 'pykbool.pyx', 'patch.sh', 'poly.json.gz', 'setup.py'):
+    os.mkdir(os.path.join(releasedir, 'data'))
+    for file_ in ('README.rst',
+                  'LICENSE', 
+                  'setup.py',
+                  'pykbool.pyx', 
+                  os.path.join('data','demo.gif'), 
+                  os.path.join('data', 'poly.json.gz'), 
+                  os.path.join('data', 'kbool-wxart2d-code-842-trunk.tgz')):
         shutil.copy(file_, '%s/%s'%(releasedir, file_))
-    a = tarfile.open('%s.tgz'%(releasedir), 'w:gz') # In Py2.6: 'TarFile' object has no attribute '__exit__'
-    a.add(releasedir)
-    a.close()
+    with tarfile.open('%s.tgz'%(releasedir), 'w:gz') as a:
+        a.add(releasedir)
     
 else:
   
@@ -134,7 +141,7 @@ else:
     
     setup(name = 'pykbool', 
           version = version,
-          url = 'http://code.google.com/p/pykbool',
+          url = 'https://github.com/decitre/pykbool',
           author = 'Emmanuel Decitre',
           license = 'LGPL',
           description = "A Cython wrapper for the kbool library",          
